@@ -47,6 +47,7 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        mOpenCvCameraView.setMaxFrameSize(180, 180);
     }
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -114,7 +115,6 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-
     }
 
     @Override
