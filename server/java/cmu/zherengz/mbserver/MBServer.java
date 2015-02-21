@@ -26,12 +26,12 @@ public class MBServer
         while (true)
         {
             System.out.println("MBServer: waiting on a phone to connect");
-            byte[] receiveBuffer = new byte[1028];
+            byte[] receiveBuffer = new byte[512];
             DatagramPacket requestPacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
             listenSocket.receive(requestPacket);
             
             System.out.println("MBServer: packet received.");
-            String requestData = new String(requestPacket.getData());
+            String requestData = new String(requestPacket.getData().trim());
             System.out.println("MBServer: packet data is: " + requestData);
             
             if (requestData.equals("MOUSEBUDDY_CONNECTION_REQUEST"))
@@ -55,6 +55,7 @@ public class MBServer
         Socket phoneSocket = servSocket.accept();
         phoneSocket.setSoTimeout(10000);
         DataInputStream mouseIn = new DataInputStream(phoneSocket.getInputStream());
+        DataInputStream mouseOut = new DataInputStream(phoneSocket.getOutputStream());
         
         /* Stream format: 1 boolean to determine whether phone is still connected 
          * followed by 2 floats for delta-x and delta-y*/
@@ -64,6 +65,7 @@ public class MBServer
                 if (!mouseIn.readBoolean())
                 {
                     mouseIn.close();
+                    mouseOut.close();
                     phoneSocket.close();
                     servSocket.close();
                     break;
@@ -75,12 +77,15 @@ public class MBServer
             }
             catch (SocketTimeoutException e)
             {
+                mouseOut.writeBoolean(false);
                 System.out.println("Connection timed out");
                 servSocket.close();
                 mouseIn.close();
+                mouseOut.close();
                 phoneSocket.close();
                 break;
             }
+            mouseOut.writeBoolean(true);
         }
     }
     
