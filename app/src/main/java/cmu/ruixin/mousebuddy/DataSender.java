@@ -10,7 +10,7 @@ import java.net.*;
  */
 public class DataSender implements Runnable {
 
-    static final int DATA_PORT = 55556;
+    static final int DATA_PORT = 8888;
     InetAddress connectAddr;
     MouseActivity activity;
 

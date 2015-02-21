@@ -11,8 +11,8 @@ import java.io.*;
 public class MBServer
 {
     /* Would like to integrate this with build system somehow lol */
-    static final int MBSERVER_PORT = 55555;
-    static final int LISTEN_PORT = 55556;
+    static final int MBSERVER_PORT = 8888;
+    static final int LISTEN_PORT = 8887;
     static final float SCALE_FACTOR = 5.0f;
     static DatagramSocket listenSocket;
     static ServerSocket servSocket;
@@ -22,6 +22,7 @@ public class MBServer
     {
         listenSocket = new DatagramSocket(LISTEN_PORT);
         listenSocket.setBroadcast(true);
+        System.out.println("MBServer: Listen socket opened at " + listenSocket.getLocalAddress().getCanonicalHostName());
         
         while (true)
         {
@@ -31,7 +32,7 @@ public class MBServer
             listenSocket.receive(requestPacket);
             
             System.out.println("MBServer: packet received.");
-            String requestData = new String(requestPacket.getData().trim());
+            String requestData = new String(requestPacket.getData()).trim();
             System.out.println("MBServer: packet data is: " + requestData);
             
             if (requestData.equals("MOUSEBUDDY_CONNECTION_REQUEST"))
@@ -55,7 +56,9 @@ public class MBServer
         Socket phoneSocket = servSocket.accept();
         phoneSocket.setSoTimeout(10000);
         DataInputStream mouseIn = new DataInputStream(phoneSocket.getInputStream());
-        DataInputStream mouseOut = new DataInputStream(phoneSocket.getOutputStream());
+        DataOutputStream mouseOut = new DataOutputStream(phoneSocket.getOutputStream());
+        
+        mouseOut.writeBoolean(true);
         
         /* Stream format: 1 boolean to determine whether phone is still connected 
          * followed by 2 floats for delta-x and delta-y*/
