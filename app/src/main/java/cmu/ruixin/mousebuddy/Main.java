@@ -61,6 +61,8 @@ public class Main extends Activity implements SensorEventListener,
     private GestureDetectorCompat mDetector;
     private Mat rotate;
 
+    private MouseActivity ma;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +113,16 @@ public class Main extends Activity implements SensorEventListener,
     public void onResume()
     {
         super.onResume();
+
+
+        ma = new MouseActivity();
+        try {
+            new ConnectServerAsyncTask(ma, "").execute();
+        }
+        catch (Exception e)
+        {
+            Log.d("MBServerConection", e.getMessage());
+        }
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, this, mLoaderCallback);
     }
 
