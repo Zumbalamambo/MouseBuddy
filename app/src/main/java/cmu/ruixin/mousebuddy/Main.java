@@ -1,17 +1,26 @@
 package cmu.ruixin.mousebuddy;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
+import android.support.v4.view.GestureDetectorCompat;
+import android.widget.EditText;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -30,9 +39,13 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main extends Activity implements SensorEventListener, CameraBridgeViewBase.CvCameraViewListener2 {
+public class Main extends Activity implements SensorEventListener,
+        CameraBridgeViewBase.CvCameraViewListener2,
+        GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener{
     static{ System.loadLibrary("opencv_java"); }
     private SensorManager mSensorManager;
+
     private Sensor mAccelerometer;
     private long prevT;
     private float x, y;
@@ -45,6 +58,8 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
     private Mat outputImage;
     private MatOfKeyPoint oldKeyPoints;
     private MatOfKeyPoint keyPoints;
+    private GestureDetectorCompat mDetector;
+    private Mat rotate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +80,15 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
         rgb = new Mat();
         outputImage = new Mat();
         oldKeyPoints = new MatOfKeyPoint();
+        rotate = Imgproc.getRotationMatrix2D(new Point(0, 0), 90, 1);
+        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        Log.d("ipaddress", ip);
+        getIP();
+        /* Gesture detection */
+
+        mDetector = new GestureDetectorCompat(this,this);
+        mDetector.setOnDoubleTapListener(this);
     }
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -195,7 +219,7 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
         }
         translation.x = x_transform / contributing_pts;
         translation.y = y_transform / contributing_pts;
-        Log.d("translation", String.format("%f, %f, %d", translation.x, translation.y, contributing_pts));
+        //Log.d("translation", String.format("%f, %f, %d", translation.x, translation.y, contributing_pts));
         if (contributing_pts == 0 || Distance(translation, new Point(0, 0)) < noiseThreshold) {
             translation.x = 0;
             translation.y = 0;
@@ -218,5 +242,86 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
         // update oldKeyPoints with new keyPoints
         oldKeyPoints = keyPoints;
         return outputImage;
+    }
+
+    /* click code */
+    public void leftClick(View v) {
+        /* send left click */
+        Log.d("EzPz", "Left Click!");
+    }
+    public void rightClick(View v) {
+        /* send right click */
+        Log.d("EzPz", "Right Click!");
+    }
+    /* gesture code */
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        this.mDetector.onTouchEvent(event);
+        // Be sure to call the superclass implementation
+        return super.onTouchEvent(event);
+    }
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        Log.d("EzPz", String.format("scrolling: (%f, %f)", distanceX, distanceY));
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        /* todo forward or backward */
+        Log.d("EzPz", String.format("flinging: (%f, %f)", velocityX, velocityY));
+        return false;
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(MotionEvent e) {
+        return false;
+    }
+
+    /* prompt for ip address */
+    public void getIP() {
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        final EditText input = new EditText(this);
+        alert.setView(input);
+        alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String out = input.getText().toString();
+                Log.d("IPAddress", out);
+            }
+        });
+        alert.show();
     }
 }
