@@ -116,6 +116,7 @@ public class MBServer
                 }
                 float deltaX = mouseIn.readFloat();
                 float deltaY = mouseIn.readFloat();
+                
                 accumX += deltaX;
                 accumY += deltaY;
                 
@@ -189,6 +190,8 @@ public class MBServer
             try {
                 awaitConnection();
                 serveConnection();
+                mouseRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                mouseRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
             }
             catch (IOException e)
             {
