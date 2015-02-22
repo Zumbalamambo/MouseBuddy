@@ -31,8 +31,8 @@ public class ConnectServerAsyncTask extends AsyncTask<Void, Void, InetAddress>
 
         connectData = "MOUSEBUDDY_CONNECTION_REQUEST".getBytes();
         activity = ma;
-        this.connectIP = "128.237.174.129";
         this.childThreads = childThreads;
+        this.connectIP = connectIP;
     }
 
     @Override

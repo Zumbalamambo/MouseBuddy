@@ -6,6 +6,10 @@ package cmu.ruixin.mousebuddy;
 public class MouseActivity {
     private boolean active;
     public int type;
+    public static final int MOUSEMOVEMENT = 1;
+    public static final int LEFTCLICK = 2;
+    public static final int RIGHTCLICK = 3;
+    public static final int SCROLL = 4;
     public float deltaX;
     public float deltaY;
 
