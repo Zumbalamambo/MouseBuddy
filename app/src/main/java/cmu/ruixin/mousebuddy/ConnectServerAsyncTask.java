@@ -27,7 +27,7 @@ public class ConnectServerAsyncTask extends AsyncTask<Void, Void, InetAddress>
     {
         connectSocket = new DatagramSocket();
         connectSocket.setBroadcast(true);
-        connectSocket.setSoTimeout(5000);
+        connectSocket.setSoTimeout(10000);
 
         connectData = "MOUSEBUDDY_CONNECTION_REQUEST".getBytes();
         activity = ma;
