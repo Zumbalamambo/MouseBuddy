@@ -26,11 +26,11 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
+//import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
-import org.opencv.engine.OpenCVEngineInterface;
+//import org.opencv.engine.OpenCVEngineInterface;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
 import org.opencv.features2d.KeyPoint;
@@ -116,17 +116,8 @@ public class Main extends Activity implements SensorEventListener,
     {
         super.onResume();
 
-        childThreads = new Thread[1];
-
-        ma = new MouseActivity();
-        try {
-            new ConnectServerAsyncTask(ma, IP, childThreads).execute();
-        }
-        catch (Exception e)
-        {
-            Log.d("MBServerConection", e.getMessage());
-        }
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, this, mLoaderCallback);
+
     }
 
     @Override
@@ -237,7 +228,7 @@ public class Main extends Activity implements SensorEventListener,
 
 
         Point translation = getTranslation(oldKeyPoints.toList(), keyPoints.toList());
-        if (ma.isActive()) {
+        if (ma != null && ma.isActive()) {
             /* transfer updates to server */
             ma.type = MouseActivity.MOUSEMOVEMENT;
             ma.deltaX = (float) translation.x;
@@ -326,6 +317,18 @@ public class Main extends Activity implements SensorEventListener,
             public void onClick(DialogInterface dialog, int which) {
                 String out = input.getText().toString();
                 IP = out;
+
+                childThreads = new Thread[1];
+
+                ma = new MouseActivity();
+                try {
+                    new ConnectServerAsyncTask(ma, IP, childThreads).execute();
+                }
+                catch (Exception e)
+                {
+                    Log.d("MBServerConection", e.getMessage());
+                }
+
             }
         });
         alert.show();
