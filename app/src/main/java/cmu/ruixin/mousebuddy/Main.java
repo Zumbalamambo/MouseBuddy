@@ -52,7 +52,7 @@ public class Main extends Activity implements SensorEventListener,
     private CameraBridgeViewBase mOpenCvCameraView;
     private FeatureDetector myFeatures;
     private MatOfKeyPoint prevPoints;
-    private static final double minDistance = 50.0;
+    private static final double minDistance = 5.0;
     private static final double noiseThreshold = 0.05;
     private Mat rgb;
     private Mat outputImage;
@@ -122,7 +122,8 @@ public class Main extends Activity implements SensorEventListener,
 
     @Override
     protected void onPause() {
-        ma.deactivate();
+        if (ma != null)
+            ma.deactivate();
         super.onPause();
     }
 
@@ -195,8 +196,9 @@ public class Main extends Activity implements SensorEventListener,
             for(KeyPoint b : p2) {
                 if (Distance(a.pt, b.pt) < min_dist) {
                     min_dist = Distance(a.pt, b.pt);
-                    dx = b.pt.x - a.pt.x;
-                    dy = b.pt.y - a.pt.y;
+                    // open cv is weird and assumes camera is
+                    dx = -(b.pt.y - a.pt.y);
+                    dy = b.pt.x - a.pt.x;
 
                 }
             }
@@ -213,6 +215,8 @@ public class Main extends Activity implements SensorEventListener,
             translation.x = 0;
             translation.y = 0;
         }
+        translation.x = Math.random() * 4 - 2;
+        translation.y = Math.random() * 4 - 2;
         return translation;
     }
 
@@ -225,7 +229,6 @@ public class Main extends Activity implements SensorEventListener,
         myFeatures.detect(rgb, keyPoints);
         Features2d.drawKeypoints(rgb, keyPoints, rgb);
         Imgproc.cvtColor(rgb, outputImage, Imgproc.COLOR_RGB2RGBA);
-
 
         Point translation = getTranslation(oldKeyPoints.toList(), keyPoints.toList());
         if (ma != null && ma.isActive()) {
