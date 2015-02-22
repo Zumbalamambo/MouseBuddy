@@ -128,13 +128,13 @@ public class MBServer
                 {
                     deltaPixelX = (int) (accumX+0.5);
                     accumX -= deltaPixelX;
-                    System.out.println("MBServer: X: " + deltaX);
+                    System.out.println("MBServer: X: " + accumX);
                 }
                 if (Math.abs(accumY) > 0.5)
                 {
                     deltaPixelY = (int) (accumY+0.5);
                     accumY -= deltaPixelY;
-                    System.out.println("MBServer: Y: " + deltaY);
+                    System.out.println("MBServer: Y: " + accumY);
                 }
                 Point pos = MouseInfo.getPointerInfo().getLocation();
                 mouseRobot.mouseMove(pos.x + deltaPixelX, pos.y + deltaPixelY);
