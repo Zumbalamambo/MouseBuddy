@@ -127,6 +127,13 @@ public class Main extends Activity implements SensorEventListener,
     }
 
     @Override
+    public void onPause()
+    {
+        super.onPause();
+        ma.deactivate();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -251,6 +258,12 @@ public class Main extends Activity implements SensorEventListener,
 
 
         Point translation = getTranslation(oldKeyPoints.toList(), keyPoints.toList());
+        if (ma.isActive()) {
+            /* transfer updates to server */
+            ma.type = MouseActivity.MOUSEMOVEMENT;
+            ma.deltaX = (float) translation.x;
+            ma.deltaY = (float) translation.y;
+        }
         // update oldKeyPoints with new keyPoints
         oldKeyPoints = keyPoints;
         return outputImage;
@@ -259,10 +272,12 @@ public class Main extends Activity implements SensorEventListener,
     /* click code */
     public void leftClick(View v) {
         /* send left click */
+        ma.type = MouseActivity.LEFTCLICK;
         Log.d("EzPz", "Left Click!");
     }
     public void rightClick(View v) {
         /* send right click */
+        ma.type = MouseActivity.RIGHTCLICK;
         Log.d("EzPz", "Right Click!");
     }
     /* gesture code */
