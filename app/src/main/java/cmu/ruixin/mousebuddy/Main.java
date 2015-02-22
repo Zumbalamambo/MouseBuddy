@@ -277,11 +277,13 @@ public class Main extends Activity implements SensorEventListener,
     public void leftClick(View v) {
         /* send left click */
         ma.type = MouseActivity.LEFTCLICK;
+        ma.leftMouseDown = true;
         Log.d("EzPz", "Left Click!");
     }
     public void rightClick(View v) {
         /* send right click */
         ma.type = MouseActivity.RIGHTCLICK;
+        ma.rightMouseDown = true;
         Log.d("EzPz", "Right Click!");
     }
     /* gesture code */

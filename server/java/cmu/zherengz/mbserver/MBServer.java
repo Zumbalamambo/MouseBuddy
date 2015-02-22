@@ -144,8 +144,9 @@ public class MBServer
                 }
                 else
                 {
-                    mouseRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+                    mouseRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                 }
+                
                 if (mouseIn.readBoolean())
                 {
                     mouseRobot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
