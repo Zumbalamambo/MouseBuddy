@@ -13,7 +13,11 @@ public class MBServer
     /* Would like to integrate this with build system somehow lol */
     static final int MBSERVER_PORT = 8888;
     static final int LISTEN_PORT = 8887;
-    static final float SCALE_FACTOR = 5.0f;
+    static final float SCALE_FACTOR = 2.0f;
+    
+    static float accumX;
+    static float accumY;
+    
     static DatagramSocket listenSocket;
     static ServerSocket servSocket;
     static Robot mouseRobot;
@@ -53,11 +57,23 @@ public class MBServer
     
     private static void serveConnection() throws IOException
     {
+        try {
+            mouseRobot = new Robot();
+        }
+        catch (Exception e)
+        {
+            System.err.println("Failed to make robot");
+            servSocket.close();
+            return;
+        }
+        
         Socket phoneSocket = servSocket.accept();
-        phoneSocket.setSoTimeout(10000);
+        System.out.println("MBServer: Connected to mouse socket");
+        phoneSocket.setSoTimeout(5000);
         DataInputStream mouseIn = new DataInputStream(phoneSocket.getInputStream());
         DataOutputStream mouseOut = new DataOutputStream(phoneSocket.getOutputStream());
         
+        System.out.println("MBServer: Starting transfer");
         mouseOut.writeBoolean(true);
         
         /* Stream format: 1 boolean to determine whether phone is still connected 
@@ -67,6 +83,7 @@ public class MBServer
             try {
                 if (!mouseIn.readBoolean())
                 {
+                    System.out.println("MBServer: Ending connection");
                     mouseIn.close();
                     mouseOut.close();
                     phoneSocket.close();
@@ -75,8 +92,25 @@ public class MBServer
                 }
                 float deltaX = mouseIn.readFloat();
                 float deltaY = mouseIn.readFloat();
+                accumX += deltaX;
+                accumY += deltaY;
+                System.out.println("MBServer: X: " + deltaX + " Y: " + deltaY);
+                
+                int deltaPixelX = 0;
+                int deltaPixelY = 0;
+                
+                if (Math.abs(accumX) > 1)
+                {
+                    deltaPixelX = (int) accumX;
+                    accumX -= deltaPixelX;
+                }
+                if (Math.abs(accumY) > 1)
+                {
+                    deltaPixelY = (int) accumY;
+                    accumX -= deltaPixelX;
+                }
                 Point pos = MouseInfo.getPointerInfo().getLocation();
-                mouseRobot.mouseMove(pos.x + (int)(deltaX/SCALE_FACTOR), pos.y + (int)(deltaY/SCALE_FACTOR));
+                mouseRobot.mouseMove(pos.x + deltaPixelX, pos.y + deltaPixelY);
             }
             catch (SocketTimeoutException e)
             {

@@ -21,7 +21,9 @@ public class ConnectServerAsyncTask extends AsyncTask<Void, Void, InetAddress>
     byte[] connectData;
     String connectIP;
 
-    public ConnectServerAsyncTask(MouseActivity ma, String connectIP) throws SocketException
+    Thread[] childThreads;
+
+    public ConnectServerAsyncTask(MouseActivity ma, String connectIP, Thread[] childThreads) throws SocketException
     {
         connectSocket = new DatagramSocket();
         connectSocket.setBroadcast(true);
@@ -30,6 +32,7 @@ public class ConnectServerAsyncTask extends AsyncTask<Void, Void, InetAddress>
         connectData = "MOUSEBUDDY_CONNECTION_REQUEST".getBytes();
         activity = ma;
         this.connectIP = "128.237.174.129";
+        this.childThreads = childThreads;
     }
 
     @Override
@@ -105,7 +108,9 @@ public class ConnectServerAsyncTask extends AsyncTask<Void, Void, InetAddress>
         }
         else
         {
-            new Thread(new DataSender(result, activity)).start();
+            Thread dataThread = new Thread(new DataSender(result, activity));
+            childThreads[0] = dataThread;
+            dataThread.start();
         }
 
     }

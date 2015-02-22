@@ -47,6 +47,7 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
     private MatOfKeyPoint keyPoints;
 
     private MouseActivity ma;
+    private Thread[] childThreads;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,16 +91,23 @@ public class Main extends Activity implements SensorEventListener, CameraBridgeV
     {
         super.onResume();
 
+        childThreads = new Thread[1];
 
         ma = new MouseActivity();
         try {
-            new ConnectServerAsyncTask(ma, "").execute();
+            new ConnectServerAsyncTask(ma, "", childThreads).execute();
         }
         catch (Exception e)
         {
             Log.d("MBServerConection", e.getMessage());
         }
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, this, mLoaderCallback);
+    }
+
+    @Override
+    protected void onPause() {
+        childThreads[0].interrupt();
+        super.onPause();
     }
 
     @Override

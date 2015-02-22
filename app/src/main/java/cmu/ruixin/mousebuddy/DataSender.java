@@ -32,13 +32,15 @@ public class DataSender implements Runnable {
             keepAlive = new DataInputStream(dataSocket.getInputStream());
             sendStream = new DataOutputStream(dataSocket.getOutputStream());
             boolean alive = keepAlive.readBoolean();
-            while (alive) {
+            while (alive && !Thread.interrupted()) {
                 if (activity.isActive()) {
-                    sendStream.writeBoolean(false);
-                } else {
                     sendStream.writeBoolean(true);
+                    activity.deltaX = 3.0f;
+                    activity.deltaY = 3.0f;
                     sendStream.writeFloat(activity.deltaX);
                     sendStream.writeFloat(activity.deltaY);
+                } else {
+                    sendStream.writeBoolean(false);
                 }
             }
             keepAlive.close();
