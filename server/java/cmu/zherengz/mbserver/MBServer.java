@@ -6,6 +6,8 @@ import java.awt.*;
 import java.net.*;
 import java.io.*;
 
+import java.awt.event.InputEvent;
+
 /* Starts a server to listen for mouse movement deltas.
  */
 public class MBServer
@@ -133,6 +135,24 @@ public class MBServer
                 }
                 Point pos = MouseInfo.getPointerInfo().getLocation();
                 mouseRobot.mouseMove(pos.x + deltaPixelX, pos.y + deltaPixelY);
+                
+                if (mouseIn.readBoolean())
+                {
+                    mouseRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                }
+                else
+                {
+                    mouseRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+                }
+                if (mouseIn.readBoolean())
+                {
+                    mouseRobot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+                }
+                else
+                {
+                    mouseRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+                }
+                
             }
             catch (SocketTimeoutException e)
             {

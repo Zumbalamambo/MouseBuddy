@@ -38,7 +38,7 @@ public class ConnectServerAsyncTask extends AsyncTask<Void, Void, InetAddress>
     @Override
     protected InetAddress doInBackground(Void... a)
     {
-        final int ATTEMPTS = 20;
+        final int ATTEMPTS = 7;
         try {
             for (int i = 0; i < ATTEMPTS; i++) {
                 /*

@@ -35,10 +35,15 @@ public class DataSender implements Runnable {
             while (alive) {
                 if (activity.isActive()) {
                     sendStream.writeBoolean(true);
+                    // movements
                     sendStream.writeFloat(activity.deltaX);
                     sendStream.writeFloat(activity.deltaY);
                     activity.deltaX = 0;
                     activity.deltaY = 0;
+                    // mouse button status
+                    sendStream.writeBoolean(activity.leftMouseDown);
+                    sendStream.writeBoolean(activity.rightMouseDown);
+
                 } else {
                     sendStream.writeBoolean(false);
                 }

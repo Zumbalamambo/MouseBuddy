@@ -10,8 +10,14 @@ public class MouseActivity {
     public static final int LEFTCLICK = 2;
     public static final int RIGHTCLICK = 3;
     public static final int SCROLL = 4;
+
+    // for movement
     public float deltaX;
     public float deltaY;
+
+    // for mouseup/mousedown
+    public boolean leftMouseDown;
+    public boolean rightMouseDown;
 
     public MouseActivity()
     {
