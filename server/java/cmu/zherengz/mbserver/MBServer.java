@@ -13,7 +13,7 @@ public class MBServer
     /* Would like to integrate this with build system somehow lol */
     static final int MBSERVER_PORT = 8888;
     static final int LISTEN_PORT = 8887;
-    static final float SCALE_FACTOR = 2.0f;
+    static final float SCALE_FACTOR = 15.0f;
     
     static float accumX;
     static float accumY;
@@ -57,6 +57,7 @@ public class MBServer
     
     private static void serveConnection() throws IOException
     {
+        servSocket.setSoTimeout(3000);
         try {
             mouseRobot = new Robot();
         }
@@ -67,7 +68,26 @@ public class MBServer
             return;
         }
         
-        Socket phoneSocket = servSocket.accept();
+        Socket phoneSocket = null;
+        
+        for (int i = 0; i < 10; i++)
+        {
+            try {
+                phoneSocket = servSocket.accept();
+            }
+            catch (SocketTimeoutException e)
+            {
+                
+            }
+            break;
+        }
+        
+        if (phoneSocket == null)
+        {
+            System.out.println("MBServer: Connection attempt timed out");
+            return;
+        }
+        
         System.out.println("MBServer: Connected to mouse socket");
         phoneSocket.setSoTimeout(5000);
         DataInputStream mouseIn = new DataInputStream(phoneSocket.getInputStream());
@@ -94,20 +114,22 @@ public class MBServer
                 float deltaY = mouseIn.readFloat();
                 accumX += deltaX;
                 accumY += deltaY;
-                System.out.println("MBServer: X: " + deltaX + " Y: " + deltaY);
+                
                 
                 int deltaPixelX = 0;
                 int deltaPixelY = 0;
                 
-                if (Math.abs(accumX) > 1)
+                if (Math.abs(accumX) > 0.5)
                 {
-                    deltaPixelX = (int) accumX;
+                    deltaPixelX = (int) (accumX+0.5);
                     accumX -= deltaPixelX;
+                    System.out.println("MBServer: X: " + deltaX);
                 }
-                if (Math.abs(accumY) > 1)
+                if (Math.abs(accumY) > 0.5)
                 {
-                    deltaPixelY = (int) accumY;
-                    accumX -= deltaPixelX;
+                    deltaPixelY = (int) (accumY+0.5);
+                    accumY -= deltaPixelY;
+                    System.out.println("MBServer: Y: " + deltaY);
                 }
                 Point pos = MouseInfo.getPointerInfo().getLocation();
                 mouseRobot.mouseMove(pos.x + deltaPixelX, pos.y + deltaPixelY);

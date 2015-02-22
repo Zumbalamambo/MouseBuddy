@@ -37,6 +37,8 @@ public class DataSender implements Runnable {
                     sendStream.writeBoolean(true);
                     sendStream.writeFloat(activity.deltaX);
                     sendStream.writeFloat(activity.deltaY);
+                    activity.deltaX = 0;
+                    activity.deltaY = 0;
                 } else {
                     sendStream.writeBoolean(false);
                 }
