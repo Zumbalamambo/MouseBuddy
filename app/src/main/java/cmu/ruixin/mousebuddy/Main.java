@@ -242,7 +242,7 @@ public class Main extends Activity implements SensorEventListener,
         List<KeyPoint> retval = new ArrayList<KeyPoint>();
         Point center = new Point(mOpenCvCameraView.getWidth() / 2, mOpenCvCameraView.getHeight() / 2);
         for (KeyPoint kp : kps) {
-            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 4) {
+            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 5) {
                 retval.add(kp);
             }
         }
