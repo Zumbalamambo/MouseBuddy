@@ -60,6 +60,7 @@ public class Main extends Activity implements SensorEventListener,
     private MatOfKeyPoint keyPoints;
     private GestureDetectorCompat mDetector;
     private Mat rotate;
+    private String IP;
 
     private MouseActivity ma;
 
@@ -117,7 +118,7 @@ public class Main extends Activity implements SensorEventListener,
 
         ma = new MouseActivity();
         try {
-            new ConnectServerAsyncTask(ma, "").execute();
+            new ConnectServerAsyncTask(ma, IP).execute();
         }
         catch (Exception e)
         {
@@ -180,29 +181,6 @@ public class Main extends Activity implements SensorEventListener,
     @Override
     public void onCameraViewStopped() {
 
-    }
-
-    public List<Integer> MatchPoints(MatOfKeyPoint p1, MatOfKeyPoint p2, Mat Transform) {
-        /*ArrayList<Integer> p = new ArrayList<Integer>();
-        int n = p1.toList().size();
-        if (Transform == null) {
-            for (int i = 0; i < n; i++){
-                p.add(i);
-            }*/
-            /* shuffling cards algo to randomly generate some matches */
-            /*for (int i = 0; i < n; i++) {
-                int newi = (int) ((Math.random() * (n - i));
-                int oldival = p.get(i);
-                p.set(i, p.get(i + newi));
-                p.set(i + newi, oldival);
-            }
-        } else {
-            for (int i = 0; i < n; i++) {
-
-            }
-        }
-        return p;*/
-        return null;
     }
 
     public double Distance(Point p1, Point p2) {
@@ -346,7 +324,7 @@ public class Main extends Activity implements SensorEventListener,
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String out = input.getText().toString();
-                Log.d("IPAddress", out);
+                IP = out;
             }
         });
         alert.show();
