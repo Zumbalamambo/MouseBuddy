@@ -55,7 +55,7 @@ public class Main extends Activity implements SensorEventListener,
     private MatOfKeyPoint prevPoints;
     private static final double minDistance = 100.0;
     private static final double noiseThreshold = 2;
-    private static final double mergeDistance = 15.0;
+    private static final double mergeDistance = 10.0;
     private Mat rgb;
     private Mat outputImage;
     private List<KeyPoint> oldKeyPoints;
@@ -242,7 +242,7 @@ public class Main extends Activity implements SensorEventListener,
         List<KeyPoint> retval = new ArrayList<KeyPoint>();
         Point center = new Point(mOpenCvCameraView.getWidth() / 2, mOpenCvCameraView.getHeight() / 2);
         for (KeyPoint kp : kps) {
-            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 5) {
+            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 2) {
                 retval.add(kp);
             }
         }
@@ -261,7 +261,7 @@ public class Main extends Activity implements SensorEventListener,
 
         Imgproc.cvtColor(rgb, outputImage, Imgproc.COLOR_RGB2RGBA);
 
-        Point translation = getTranslation(centerOnly(oldKeyPoints), keyPoints);
+        Point translation = getTranslation((oldKeyPoints), keyPoints);
         if (ma != null && ma.isActive()) {
             /* transfer updates to server */
             ma.type = MouseActivity.MOUSEMOVEMENT;
