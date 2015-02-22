@@ -234,8 +234,8 @@ public class Main extends Activity implements SensorEventListener,
         if (ma != null && ma.isActive()) {
             /* transfer updates to server */
             ma.type = MouseActivity.MOUSEMOVEMENT;
-            ma.deltaX = (float) translation.x;
-            ma.deltaY = (float) translation.y;
+            ma.deltaX += (float) translation.x;
+            ma.deltaY += (float) translation.y;
         }
         // update oldKeyPoints with new keyPoints
         oldKeyPoints = keyPoints;
