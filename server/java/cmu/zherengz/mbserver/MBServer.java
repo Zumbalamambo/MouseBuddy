@@ -15,7 +15,7 @@ public class MBServer
     /* Would like to integrate this with build system somehow lol */
     static final int MBSERVER_PORT = 8888;
     static final int LISTEN_PORT = 8887;
-    static final float SCALE_FACTOR = 15.0f;
+    static final float SCALE_FACTOR = 5.0f;
     
     static float accumX;
     static float accumY;
