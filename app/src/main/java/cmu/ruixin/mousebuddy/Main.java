@@ -261,7 +261,7 @@ public class Main extends Activity implements SensorEventListener,
 
         Imgproc.cvtColor(rgb, outputImage, Imgproc.COLOR_RGB2RGBA);
 
-        Point translation = getTranslation(centerOnly(oldKeyPoints), keyPoints);
+        Point translation = getTranslation(oldKeyPoints, keyPoints);
         if (ma != null && ma.isActive()) {
             /* transfer updates to server */
             ma.type = MouseActivity.MOUSEMOVEMENT;
