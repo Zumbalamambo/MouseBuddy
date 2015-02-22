@@ -59,7 +59,7 @@ public class MBServer
     
     private static void serveConnection() throws IOException
     {
-        servSocket.setSoTimeout(3000);
+        servSocket.setSoTimeout(30000);
         try {
             mouseRobot = new Robot();
         }
@@ -79,7 +79,9 @@ public class MBServer
             }
             catch (SocketTimeoutException e)
             {
-                
+				System.out.println("MBServer: Socket Timeout Exception");
+				e.printStackTrace();
+                continue;
             }
             break;
         }

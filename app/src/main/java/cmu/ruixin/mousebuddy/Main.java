@@ -35,6 +35,7 @@ import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
 import org.opencv.features2d.KeyPoint;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,12 +53,13 @@ public class Main extends Activity implements SensorEventListener,
     private CameraBridgeViewBase mOpenCvCameraView;
     private FeatureDetector myFeatures;
     private MatOfKeyPoint prevPoints;
-    private static final double minDistance = 50.0;
-    private static final double noiseThreshold = 0.05;
+    private static final double minDistance = 100.0;
+    private static final double noiseThreshold = 2;
+    private static final double mergeDistance = 15.0;
     private Mat rgb;
     private Mat outputImage;
-    private MatOfKeyPoint oldKeyPoints;
-    private MatOfKeyPoint keyPoints;
+    private List<KeyPoint> oldKeyPoints;
+    private List<KeyPoint> keyPoints;
     private GestureDetectorCompat mDetector;
     private Mat rotate;
     private String IP;
@@ -80,10 +82,10 @@ public class Main extends Activity implements SensorEventListener,
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
-        mOpenCvCameraView.setMaxFrameSize(180, 180);
+        mOpenCvCameraView.setMaxFrameSize(240, 240);
         rgb = new Mat();
         outputImage = new Mat();
-        oldKeyPoints = new MatOfKeyPoint();
+        oldKeyPoints = new ArrayList<KeyPoint>();
         rotate = Imgproc.getRotationMatrix2D(new Point(0, 0), 90, 1);
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
@@ -122,7 +124,8 @@ public class Main extends Activity implements SensorEventListener,
 
     @Override
     protected void onPause() {
-        ma.deactivate();
+        if (ma != null)
+            ma.deactivate();
         super.onPause();
     }
 
@@ -195,8 +198,9 @@ public class Main extends Activity implements SensorEventListener,
             for(KeyPoint b : p2) {
                 if (Distance(a.pt, b.pt) < min_dist) {
                     min_dist = Distance(a.pt, b.pt);
-                    dx = b.pt.x - a.pt.x;
-                    dy = b.pt.y - a.pt.y;
+                    // open cv is weird and assumes camera is
+                    dx = (b.pt.y - a.pt.y);
+                    dy = -(b.pt.x - a.pt.x);
 
                 }
             }
@@ -216,18 +220,48 @@ public class Main extends Activity implements SensorEventListener,
         return translation;
     }
 
+    public List<KeyPoint> filter(List<KeyPoint> p) {
+        List<KeyPoint> retval = new ArrayList<KeyPoint>();
+        for (int i = 0; i < p.size(); i++) {
+            KeyPoint k = p.get(i);
+            for (int j = i + 1; j < p.size(); j++) {
+                KeyPoint l = p.get(j);
+                if (Distance(k.pt, l.pt) < mergeDistance) {
+                    k.pt.x = (l.pt.x + k.pt.x) / 2;
+                    k.pt.y = (l.pt.y + k.pt.y) / 2;
+                    retval.add(k);
+                    break;
+                }
+            }
+            retval.add(k);
+        }
+        return retval;
+    }
+
+    public List<KeyPoint> centerOnly(List<KeyPoint> kps) {
+        List<KeyPoint> retval = new ArrayList<KeyPoint>();
+        Point center = new Point(mOpenCvCameraView.getWidth() / 2, mOpenCvCameraView.getHeight() / 2);
+        for (KeyPoint kp : kps) {
+            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 4) {
+                retval.add(kp);
+            }
+        }
+        return retval;
+    }
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         // Imgproc
         //Core
-        keyPoints = new MatOfKeyPoint();
+        MatOfKeyPoint k = new MatOfKeyPoint();
         Imgproc.cvtColor(inputFrame.rgba(), rgb, Imgproc.COLOR_RGBA2RGB);
-        myFeatures.detect(rgb, keyPoints);
-        Features2d.drawKeypoints(rgb, keyPoints, rgb);
+        myFeatures.detect(rgb, k);
+        keyPoints = k.toList();
+        keyPoints = filter(keyPoints);
+        Features2d.drawKeypoints(rgb, k, rgb);
+
         Imgproc.cvtColor(rgb, outputImage, Imgproc.COLOR_RGB2RGBA);
 
-
-        Point translation = getTranslation(oldKeyPoints.toList(), keyPoints.toList());
+        Point translation = getTranslation(centerOnly(oldKeyPoints), keyPoints);
         if (ma != null && ma.isActive()) {
             /* transfer updates to server */
             ma.type = MouseActivity.MOUSEMOVEMENT;
