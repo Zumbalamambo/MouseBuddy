@@ -15,7 +15,7 @@ public class MBServer
     /* Would like to integrate this with build system somehow lol */
     static final int MBSERVER_PORT = 8888;
     static final int LISTEN_PORT = 8887;
-    static final float SCALE_FACTOR = 15.0f;
+    static final float SCALE_FACTOR = 5.0f;
     
     static float accumX;
     static float accumY;
@@ -128,13 +128,13 @@ public class MBServer
                 {
                     deltaPixelX = (int) (accumX+0.5);
                     accumX -= deltaPixelX;
-                    System.out.println("MBServer: X: " + deltaX);
+                    System.out.println("MBServer: X: " + accumX);
                 }
                 if (Math.abs(accumY) > 0.5)
                 {
                     deltaPixelY = (int) (accumY+0.5);
                     accumY -= deltaPixelY;
-                    System.out.println("MBServer: Y: " + deltaY);
+                    System.out.println("MBServer: Y: " + accumY);
                 }
                 Point pos = MouseInfo.getPointerInfo().getLocation();
                 mouseRobot.mouseMove(pos.x + deltaPixelX, pos.y + deltaPixelY);
