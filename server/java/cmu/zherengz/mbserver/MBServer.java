@@ -141,19 +141,23 @@ public class MBServer
                 
                 if (mouseIn.readBoolean())
                 {
+					System.out.println("Button1 Mouse Down");
                     mouseRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                 }
                 else
                 {
+					System.out.println("Button1 Mouse Up");
                     mouseRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                 }
                 
                 if (mouseIn.readBoolean())
                 {
+					System.out.println("Button2 Mouse Down");
                     mouseRobot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
                 }
                 else
                 {
+					System.out.println("Button2 Mouse Up");
                     mouseRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
                 }
                 

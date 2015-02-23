@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.v4.view.MotionEventCompat;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -24,6 +26,7 @@ import android.widget.EditText;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 //import org.opencv.core.Core;
@@ -53,9 +56,9 @@ public class Main extends Activity implements SensorEventListener,
     private CameraBridgeViewBase mOpenCvCameraView;
     private FeatureDetector myFeatures;
     private MatOfKeyPoint prevPoints;
-    private static final double minDistance = 100.0;
-    private static final double noiseThreshold = 2;
-    private static final double mergeDistance = 10.0;
+    private static final double minDistance = 90.0;
+    private static final double noiseThreshold = 1;
+    private static final double mergeDistance = 20.0;
     private Mat rgb;
     private Mat outputImage;
     private List<KeyPoint> oldKeyPoints;
@@ -63,9 +66,12 @@ public class Main extends Activity implements SensorEventListener,
     private GestureDetectorCompat mDetector;
     private Mat rotate;
     private String IP;
+    private Point oldTranslation;
 
     private MouseActivity ma;
     private Thread[] childThreads;
+
+    private float adeltax, adeltay, accel_x, accel_y, adeltat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,14 +81,16 @@ public class Main extends Activity implements SensorEventListener,
         camp.startCamera();*/
         /* accelerometer init */
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 
         myFeatures = FeatureDetector.create(FeatureDetector.ORB);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.HelloOpenCvView);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
-        mOpenCvCameraView.setMaxFrameSize(240, 240);
+        mOpenCvCameraView.setMaxFrameSize(280, 280);
         rgb = new Mat();
         outputImage = new Mat();
         oldKeyPoints = new ArrayList<KeyPoint>();
@@ -91,6 +99,8 @@ public class Main extends Activity implements SensorEventListener,
         String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
         Log.d("ipaddress", ip);
         getIP();
+
+
         /* Gesture detection */
 
         mDetector = new GestureDetectorCompat(this,this);
@@ -156,12 +166,10 @@ public class Main extends Activity implements SensorEventListener,
     @Override
     public void onSensorChanged(SensorEvent event) {
         long dt = event.timestamp - prevT;
-        float accel_x = event.values[0];
-        float accel_y = event.values[1];
-        float dx = accel_x * dt * dt / 2;
-        float dy = accel_y * dt * dt / 2;
-        x += dx;
-        y += dy;
+        accel_x = event.values[0];
+        accel_y = event.values[1];
+        adeltax = accel_x * dt * dt / 2;
+        adeltay = accel_y * dt * dt / 2;
     }
 
     @Override
@@ -186,7 +194,7 @@ public class Main extends Activity implements SensorEventListener,
         point in p2. The transform returned is the average dx and dy of each
         match. Sometimes a point may not get matched and it will not contribute.
      */
-    public Point getTranslation(List<KeyPoint> p1, List<KeyPoint> p2) {
+    public Point getTranslation(List<KeyPoint> p1, List<KeyPoint> p2, Point oldT) {
         Point translation = new Point();
         int contributing_pts = 0;
         double x_transform = 0;
@@ -195,9 +203,10 @@ public class Main extends Activity implements SensorEventListener,
             double min_dist = minDistance; // manually adjust this
             double dx = 0;
             double dy = 0;
+            Point temp = new Point(a.pt.x/* - oldT.y / 2*/, a.pt.y /*+ oldT.x / 2*/);
             for(KeyPoint b : p2) {
-                if (Distance(a.pt, b.pt) < min_dist) {
-                    min_dist = Distance(a.pt, b.pt);
+                if (Distance(temp, b.pt) < min_dist) {
+                    min_dist = Distance(temp, b.pt);
                     // open cv is weird and assumes camera is
                     dx = (b.pt.y - a.pt.y);
                     dy = -(b.pt.x - a.pt.x);
@@ -242,7 +251,7 @@ public class Main extends Activity implements SensorEventListener,
         List<KeyPoint> retval = new ArrayList<KeyPoint>();
         Point center = new Point(mOpenCvCameraView.getWidth() / 2, mOpenCvCameraView.getHeight() / 2);
         for (KeyPoint kp : kps) {
-            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 2) {
+            if (Distance(kp.pt, center) <=  mOpenCvCameraView.getHeight() / 3) {
                 retval.add(kp);
             }
         }
@@ -261,7 +270,8 @@ public class Main extends Activity implements SensorEventListener,
 
         Imgproc.cvtColor(rgb, outputImage, Imgproc.COLOR_RGB2RGBA);
 
-        Point translation = getTranslation((oldKeyPoints), keyPoints);
+        Point translation = getTranslation((oldKeyPoints), keyPoints, oldTranslation);
+        oldTranslation = translation;
         if (ma != null && ma.isActive()) {
             /* transfer updates to server */
             ma.type = MouseActivity.MOUSEMOVEMENT;
@@ -273,23 +283,50 @@ public class Main extends Activity implements SensorEventListener,
         return outputImage;
     }
 
-    /* click code */
-    public void leftClick(View v) {
-        /* send left click */
-        ma.type = MouseActivity.LEFTCLICK;
-        ma.leftMouseDown = true;
-        Log.d("EzPz", "Left Click!");
-    }
-    public void rightClick(View v) {
-        /* send right click */
-        ma.type = MouseActivity.RIGHTCLICK;
-        ma.rightMouseDown = true;
-        Log.d("EzPz", "Right Click!");
+    public boolean inView(MotionEvent event, View v) {
+        float x = event.getX();
+        float y = event.getY();
+        int vx = v.getLeft();
+        int vy = v.getTop();
+        int vx2 = vx + v.getWidth();
+        int vy2 = vy + v.getHeight();
+        //Log.d("TouchEvent", String.format("%d <= %f <= %d && %d <= %f <= %d", vx, x, vx2, vy, y, vy2));
+        if (vx <= x && x <= vx2 &&
+            vy <= y && y <= vy2) {
+            return true;
+        }
+        return false;
     }
     /* gesture code */
     @Override
     public boolean onTouchEvent(MotionEvent event){
         this.mDetector.onTouchEvent(event);
+        /* hacky */
+        int action = MotionEventCompat.getActionMasked(event);
+        View left = findViewById(R.id.leftButton);
+        View right = findViewById(R.id.rightButton);
+        switch(action) {
+            case (MotionEvent.ACTION_DOWN):
+                if (inView(event, left)) {
+                    Log.d("TouchEvent", "Left Down");
+                    ma.leftMouseDown = true;
+                } else if (inView(event, right)) {
+                    Log.d("TouchEvent", "Right Down");
+                    ma.rightMouseDown = true;
+                }
+                break;
+            case (MotionEvent.ACTION_UP):
+                if (inView(event, left)) {
+                    Log.d("TouchEvent", "Left Up");
+                    ma.leftMouseDown = false;
+                } else if (inView(event, right)) {
+                    Log.d("TouchEvent", "Right Up");
+                    ma.rightMouseDown = false;
+                }
+                break;
+            default:
+                break;
+        }
         // Be sure to call the superclass implementation
         return super.onTouchEvent(event);
     }
